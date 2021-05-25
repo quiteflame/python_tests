@@ -1,0 +1,7 @@
+<!doctype html>
+<title>Hello from Flask</title>
+{% if name %}
+  <h1>Hello {{ name }}! <a href={{ url_for('logout') }}>Logout</a></h1>
+{% else %}
+  <h1>You are not logged in <a href={{ url_for('login') }}>Login</a></h1>
+{% endif %}
