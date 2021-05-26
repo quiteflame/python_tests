@@ -1,19 +1,19 @@
 [[source]]
-url = "https://pypi.python.org/simple"
+url = "https://pypi.org/simple"
 verify_ssl = true
 name = "pypi"
 
 [packages]
+sqlalchemy = "*"
 fastapi = "*"
 python-multipart = "*"
-tortoise-orm = "*"
 passlib = "*"
 pyjwt = "*"
+uvicorn = {extras = ["standard"], version = "*"}
+bcrypt = "*"
 
 [dev-packages]
+autopep8 = "*"
 
 [requires]
 python_version = "3.8"
-
-[packages.uvicorn]
-extras = [ "standard",]
