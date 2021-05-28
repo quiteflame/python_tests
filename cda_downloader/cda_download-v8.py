@@ -10,11 +10,13 @@ from functools import partial
 from threading import Event
 from urllib.request import urlopen
 import argparse
+import logging
 
 from bs4 import BeautifulSoup
 
 # The selenium module
 from selenium import webdriver
+from selenium.webdriver.firefox.options import Options
 
 from rich.progress import (
     BarColumn,
@@ -30,6 +32,9 @@ from rich.progress import (
 def get_next_episode_urls(url, driver, count, url_list, postfix=""):
     if postfix:
         url += "?wersja=" + postfix
+
+    logging.info(f"Getting video for url: {url} ({count} iterations left)")
+
     driver.get(url)
     src = driver.page_source
     parser = BeautifulSoup(src, "lxml")
@@ -37,11 +42,15 @@ def get_next_episode_urls(url, driver, count, url_list, postfix=""):
     try:
         video = parser.find('video').get('src')
     except AttributeError:
+        logging.error(f"No video found!!")
         return None
 
-    file_name = driver.title.replace(' ', '_').replace('/', '').replace("_-_CDA", '') + '.mp4'
+    file_name = driver.title.replace(' ', '_').replace(
+        '/', '').replace("_-_CDA", '') + '.mp4'
 
     url_list.append((file_name, video))
+
+    logging.info(f"Found {file_name}: {video}")
 
     div = parser.findAll('div', attrs={'class': 'media-show'})[0]
     a = div.findAll('a')[0]
@@ -63,7 +72,7 @@ def get_next_episode_urls(url, driver, count, url_list, postfix=""):
     if count >= 0:
         get_next_episode_urls(next_url, driver, count, url_list, quality)
     else:
-        print("Next page: " + next_url)
+        logging.info(f"Next page {next_url}")
 
     return url_list
 
@@ -72,6 +81,8 @@ def get_episode_url(url, driver, postfix=""):
     if postfix:
         url += "?wersja=" + postfix
 
+    logging.info(f"Getting video for url: {url}")
+
     driver.get(url)
     src = driver.page_source
 
@@ -79,14 +90,20 @@ def get_episode_url(url, driver, postfix=""):
     try:
         video = parser.find('video').get('src')
     except AttributeError:
+        logging.error(f"No video found!!")
         return None
 
-    file_name = driver.title.replace(' ', '_').replace('/', '').replace("_-_CDA", '') + '.mp4'
+    file_name = driver.title.replace(' ', '_').replace(
+        '/', '').replace("_-_CDA", '') + '.mp4'
+
+    logging.info(f"Found {file_name}: {video}")
 
     return file_name, video
 
 
 def get_episode_urls(url, driver, skip):
+    logging.error(f"Start looking for videos in folder")
+
     url_list = []
     driver.get(url)
     src = driver.page_source
@@ -101,12 +118,16 @@ def get_episode_urls(url, driver, skip):
     for div in data:
         links = div.findAll('a')
         try:
-            quality_span = div.findAll('span', attrs={'class': 'hd-ico-elem'})[0]
+            quality_span = div.findAll(
+                'span', attrs={'class': 'hd-ico-elem'})[0]
         except IndexError:
             quality_span = None
         quality = None
         if quality_span:
             quality = quality_span.text
+
+        logging.error(f"Found {len(links)} videos!!")
+
         for a in links:
             url = "https://www.cda.pl" + a['href']
             data = get_episode_url(url, driver, quality)
@@ -162,27 +183,36 @@ def download_all(urls):
             for url in urls:
                 filename = url[0]
                 dest_path = os.path.join('.', filename)
-                task_id = progress.add_task("download", filename=filename, start=False)
+                task_id = progress.add_task(
+                    "download", filename=filename, start=False)
                 pool.submit(copy_url, task_id, url[1], dest_path)
 
 
 def site_login(driver):
+    logging.info("Start logging in")
     driver.get("https://www.cda.pl/login")
     driver.find_element_by_id("login").send_keys("email")
     driver.find_element_by_id("pass").send_keys("password")
     driver.find_element_by_name("login").click()
+    logging.info("Logging in successful")
 
 
 def main(argv):
-    parser = argparse.ArgumentParser(description="Downloads episodes from CDA.pl")
+    logging.basicConfig(level=logging.INFO)
+
+    parser = argparse.ArgumentParser(
+        description="Downloads episodes from CDA.pl")
     group = parser.add_mutually_exclusive_group()
     group.add_argument("-e", "--episode", type=str, help="single episode url")
-    group.add_argument("-f", "--folder", type=str, help="folder with episodes url")
+    group.add_argument("-f", "--folder", type=str,
+                       help="folder with episodes url")
     group.add_argument("-n", "--next", type=str, help="starting episode url")
     parser.add_argument("-q", "--quality", type=str, choices=["360p", "480p", "720p", "1080p"],
                         help="quality of single episode")
-    parser.add_argument("-s", "--skip", type=int, help="amount of episodes to skip in a folder")
-    parser.add_argument("-c", "--count", type=int, help="count of next episodes")
+    parser.add_argument("-s", "--skip", type=int,
+                        help="amount of episodes to skip in a folder")
+    parser.add_argument("-c", "--count", type=int,
+                        help="count of next episodes")
 
     if len(argv) == 0:
         parser.print_help(sys.stderr)
@@ -190,7 +220,9 @@ def main(argv):
 
     args = parser.parse_args()
 
-    driver = webdriver.Firefox()
+    options = Options()
+    options.headless = True
+    driver = webdriver.Firefox(options=options)
 
     site_login(driver)
 
@@ -210,7 +242,8 @@ def main(argv):
         quality = 10
         if args.quality:
             quality = args.quality
-        urls = get_next_episode_urls(args.next, driver, args.count, [], quality)
+        urls = get_next_episode_urls(
+            args.next, driver, args.count, [], quality)
         driver.close()
         download_all(urls)
         return
