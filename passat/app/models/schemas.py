@@ -29,7 +29,14 @@ class UserCreate(UserBase):
 class User(UserBase):
     public_id: str
     is_active: bool
-    credentials: List[Credential] = []
 
     class Config:
         orm_mode = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenPayload(BaseModel):
+    sub: str

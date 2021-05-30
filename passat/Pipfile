@@ -7,6 +7,7 @@ name = "pypi"
 fastapi = "*"
 SQLAlchemy = "*"
 passlib = "*"
+python-multipart = "*"
 
 [dev-packages]
 
@@ -15,3 +16,6 @@ python_version = "3.8"
 
 [packages.uvicorn]
 extras = [ "standard",]
+
+[packages.python-jose]
+extras = [ "cryptography",]
