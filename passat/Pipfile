@@ -8,6 +8,7 @@ fastapi = "*"
 SQLAlchemy = "*"
 passlib = "*"
 python-multipart = "*"
+bcrypt = "*"
 
 [dev-packages]
 

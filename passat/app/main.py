@@ -12,7 +12,6 @@ from .settings import settings
 from .database import crud
 from . import security
 
-
 app = FastAPI()
 
 app.include_router(users.router)
@@ -40,7 +39,7 @@ def startup_event():
 
 @app.post("/login/access-token", response_model=schemas.Token)
 def login_access_token(
-    db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()
+        db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()
 ):
     """
     OAuth2 compatible token login, get an access token for future requests.
@@ -54,6 +53,7 @@ def login_access_token(
         "access_token": security.create_access_token(subject=user.public_id),
         "token_type": "bearer",
     }
+
 
 if __name__ == "__main__":
     # python3 -m app.main

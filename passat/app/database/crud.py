@@ -51,8 +51,11 @@ def activate_user(db: Session, user_id: str):
 def get_credentials(db: Session, user_id: int, skip: int = 0, limit: int = 100):
     return db.query(models.Credential).filter(models.Credential.owner_id == user_id).offset(skip).limit(limit).all()
 
+
 def get_credential(db: Session, credential_id: str, user_id: int):
-    return db.query(models.Credential).filter(models.Credential.public_id == credential_id and models.Credential.owner_id == user_id).first()
+    return db.query(models.Credential).filter(
+        models.Credential.public_id == credential_id and models.Credential.owner_id == user_id).first()
+
 
 def create_credential(db: Session, item: schemas.CredentialCreate, user_id: int):
     db_item = models.Credential(**item.dict(), owner_id=user_id)
@@ -60,6 +63,7 @@ def create_credential(db: Session, item: schemas.CredentialCreate, user_id: int)
     db.commit()
     db.refresh(db_item)
     return db_item
+
 
 def authenticate_user(db: Session, email: str, password: str):
     user = get_user_by_email(db=db, email=email)
