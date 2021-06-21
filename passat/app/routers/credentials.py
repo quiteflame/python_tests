@@ -2,9 +2,9 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from ..dependencies import get_current_user, get_db
-from ..database import crud
-from ..models import schemas
+from app.dependencies import get_current_user, get_db
+from app.database import crud
+from app.models import schemas
 
 router = APIRouter(
     prefix="/credentials",

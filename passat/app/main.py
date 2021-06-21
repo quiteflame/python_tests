@@ -7,16 +7,16 @@ from .models import models, schemas
 from .database.database import engine, SessionLocal
 from .dependencies import get_db
 from .internal import admin
-from .routers import credentials, users
-from .settings import settings
-from .database import crud
-from . import security
+from app.routers import credentials, users
+from app.settings import settings
+from app.database import crud
+from app import security
 
-app = FastAPI()
+api = FastAPI()
 
-app.include_router(users.router)
-app.include_router(credentials.router)
-app.include_router(
+api.include_router(users.router)
+api.include_router(credentials.router)
+api.include_router(
     admin.router,
     prefix="/admin",
     tags=["admin"],
@@ -24,7 +24,7 @@ app.include_router(
 )
 
 
-@app.on_event("startup")
+@api.on_event("startup")
 def startup_event():
     models.Base.metadata.create_all(bind=engine)
     db: Session = SessionLocal()
@@ -37,7 +37,7 @@ def startup_event():
     db.close()
 
 
-@app.post("/login/access-token", response_model=schemas.Token)
+@api.post("/login/access-token", response_model=schemas.Token)
 def login_access_token(
         db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()
 ):
@@ -57,4 +57,4 @@ def login_access_token(
 
 if __name__ == "__main__":
     # python3 -m app.main
-    uvicorn.run("app.main:app", port=8000, reload=True, access_log=False)
+    uvicorn.run("app.main:api", port=8000, reload=True, access_log=False)

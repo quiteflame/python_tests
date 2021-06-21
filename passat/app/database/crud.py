@@ -1,5 +1,5 @@
-from .. import security
-from ..models import models, schemas
+from app import security
+from app.models import models, schemas
 from sqlalchemy.orm import Session
 from passlib.hash import bcrypt
 

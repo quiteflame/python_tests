@@ -9,6 +9,7 @@ SQLAlchemy = "*"
 passlib = "*"
 python-multipart = "*"
 bcrypt = "*"
+mypy = "*"
 
 [dev-packages]
 
